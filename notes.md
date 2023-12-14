@@ -14,6 +14,8 @@ allow http methods only to GET for certain end points
 when forbidden methods hit, return 405 (Method not allowed)  
 
     A type that implements the interface, and methods of the interface, just means such type can use those methods in that interface.
+    The implementing type then can be consumed as the interface type as arguments for other functions.
+    ref: https://gobyexample.com/interfaces
 
 ### **Nov.25th**
 - `curl -I http://example.com` puts a HEAD method in request, to use GET explicitly use `-X GET` 
