@@ -51,6 +51,13 @@ used chatgpt for code to rendered a html page as a string, and made sure url pat
 - most importantly, try to understand as much as possible the full picture of code, and what the coding task is asking for PATIENTLY on ANY coding task
 
 ### **Dec.9th**
-- read 1st assignment of Storage chapter
+- finished reading 1st assignment of Storage chapter
   - write POST and GET endpints to API, which saves data persistently
   - learn proper way to code, to save data to disk (code is essentially database package design) through the link given, and the example Lane provided
+
+
+### **Dec.13th**
+- added internal package (of the root module):
+    - making a golang module in `internal` directory,  `go mod init module_name`
+    - in root `go.mod` add `require` & `replace` line
+    - in root dir's `main.go` add `import internal/module_name`
