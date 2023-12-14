@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"internal/dblogic"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -54,6 +55,7 @@ func handleRequests() {
 }
 
 func main() {
+	dblogic.Foo()
 	handleRequests()
 }
 
