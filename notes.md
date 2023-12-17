@@ -63,3 +63,12 @@ used chatgpt for code to rendered a html page as a string, and made sure url pat
     - making a golang module in `internal` directory,  `go mod init module_name`
     - in root `go.mod` add `require` & `replace` line
     - in root dir's `main.go` add `import internal/module_name`
+
+### *Dec.15th*
+- requests and responses both have headers
+- all requests methods have response(and response headers) seems
+
+### *Dec.17th*
+- self tested chap 5. challenge 1, not sure website tests are not passing
+- made `returnVals` and the `jsonState` slice global variables
+    - slice of golang is dynamic, don't need to worry about memory bound

@@ -3,10 +3,11 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"internal/dblogic"
 	"log"
 	"net/http"
+	"os"
 	"strings"
-	"internal/dblogic"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -14,6 +15,14 @@ import (
 type apiConfig struct {
 	fileserverHits int
 }
+
+type returnVals struct {
+	// the key will be the name of struct field unless you give it an explicit JSON tag
+	Body string `json:"body"`
+	Id   int    `json:"id"`
+}
+
+var jsonState []returnVals
 
 // request -> http ROUTER function -> handler function
 func handleRequests() {
@@ -30,16 +39,18 @@ func handleRequests() {
 	myRouter.Handle("/app", apiCfg.middlewareMetricsInc(http.StripPrefix("/app", http.FileServer(http.Dir(".")))))
 
 	/*
+		API logic:
 		make a new chi router and group mount /healthz, /metrics, /reset all under /api
 		for rApi.Get() either write a handler function explicitly, or put in function name without ()
 		reqsReset is a handler that resets requests count
 	*/
+
 	rApi := chi.NewRouter()
 	rApi.Get("/healthz", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("OK\n"))
 	})
 	rApi.HandleFunc("/reset", apiCfg.reqsReset)
-	rApi.HandleFunc("/validate_chirp", apiCfg.checkInputJson)
+	rApi.HandleFunc("/chirps", apiCfg.checkInputJson)
 	myRouter.Mount("/api", rApi)
 
 	/*
@@ -98,6 +109,7 @@ func censorWords(body string, badWords []string) string {
 	return cleaned_words
 }
 
+// validate input json, increment id if valid and return a json response
 func (cfg *apiConfig) checkInputJson(w http.ResponseWriter, r *http.Request) {
 	type parameters struct {
 		// these tags indicate how the keys in the JSON should be mapped to the struct fields
@@ -105,14 +117,38 @@ func (cfg *apiConfig) checkInputJson(w http.ResponseWriter, r *http.Request) {
 		Body string `json:"body"`
 	}
 
-	type returnVals struct {
-		// the key will be the name of struct field unless you give it an explicit JSON tag
-		Cleaned_Body string `json:"cleaned_body"`
+	// create a json file to store data (persistent state storage)
+	filePath := "file_path.json"
+	outputFile, err := os.Create(filePath)
+	if err != nil {
+		return
+	}
+	defer outputFile.Close()
+
+	// if GET method to endpoint, return jsonState
+	if r.Method == http.MethodGet {
+		fmt.Println("GET request received")
+
+		//resp, err := json.Marshal(jsonState)
+		resp, err := json.MarshalIndent(jsonState, "", "  ")
+		if err != nil {
+			log.Printf("error marshalling jsonState")
+			w.WriteHeader(500)
+			return
+		}
+
+		// send response json with the automatically passed in http.ResponseWriter
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(200)
+		w.Write(resp)
+		w.Write([]byte("OK\n"))
+
+		return
 	}
 
 	decoder := json.NewDecoder(r.Body)
 	params := parameters{}
-	err := decoder.Decode(&params)
+	err = decoder.Decode(&params)
 	if err != nil {
 		log.Printf("Error decoding parameters: %s", err)
 		w.WriteHeader(500)
@@ -133,20 +169,45 @@ func (cfg *apiConfig) checkInputJson(w http.ResponseWriter, r *http.Request) {
 	} else {
 		words := []string{"fornax", "kerfuffle", "sharbert"}
 		cleaned := censorWords(json_string, words)
+		var new_id int
 
-		validJson := returnVals{
-			Cleaned_Body: cleaned,
+		// Get the last item and create id of new json
+		if len(jsonState) == 0 {
+			new_id = 1
+		} else {
+			lastIndex := len(jsonState) - 1
+			new_id = jsonState[lastIndex].Id + 1
 		}
-		resp, err := json.Marshal(validJson)
+
+		postResp := returnVals{
+			Body: cleaned,
+			Id:   new_id,
+		}
+		//resp, err := json.Marshal(postResp)
+		resp, err := json.MarshalIndent(postResp, "", "  ")
 		if err != nil {
-			log.Printf("error marshalling validJson")
+			log.Printf("error marshalling postResp")
 			w.WriteHeader(500)
 			return
 		}
 
+		// send response json with the automatically passed in http.ResponseWriter
 		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(200)
+		w.WriteHeader(201)
 		w.Write(resp)
+
+		// write updated jsonState into file
+		jsonState = append(jsonState, postResp)
+		updatedState, err := json.Marshal(jsonState)
+		if err != nil {
+			fmt.Println("Error marshaling JSON:", err)
+			return
+		}
+		_, err = outputFile.Write(updatedState)
+		if err != nil {
+			fmt.Println("Error writing to file:", err)
+			return
+		}
 	}
 }
 
@@ -191,14 +252,17 @@ func (cfg *apiConfig) getAdminMetrics(w http.ResponseWriter, r *http.Request) {
 }
 
 /*
-// real pointer sample code
-srv := &http.Server{
-    Addr:    ":" + port,
-    Handler: mux,
+//  pointer code example, xPtr, and &x refer to the same mem address here, so same pointer
+func zero(xPtr *int) {
+  *xPtr = 0
+  fmt.Println(xPtr)
+  fmt.Println(*xPtr)
 }
-
-log.Printf("Serving files from %s on port: %s\n", filepathRoot, port)
-log.Fatal(srv.ListenAndServe())
+func main() {
+  x := 5
+  zero(&x)
+  fmt.Println(&x)
+}
 
 
 //  Receiver of ListenAndServe is Server, like this: func (*Server) ListenAndServe

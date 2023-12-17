@@ -3,11 +3,12 @@ package dblogic
 
 import "fmt"
 
-//Foo prints something, testing importing internal packagae
+// Foo prints something, testing importing internal packagae
 func Foo() {
-    fmt.Println("Using an internal package !")
+	fmt.Println("Using an internal package !")
 }
 
+/*
 type DB struct {
 	path string
 	mux  *sync.RWMutex
@@ -39,4 +40,6 @@ func (db *DB) loadDB() (DBStructure, error)
 
 
 // writeDB writes the database file to disk
-func (db *DB) writeDB(dbStructure DBStructure) error 
+func (db *DB) writeDB(dbStructure DBStructure) error
+
+*/
