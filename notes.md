@@ -72,3 +72,9 @@ used chatgpt for code to rendered a html page as a string, and made sure url pat
 - self tested chap 5. challenge 1, not sure website tests are not passing
 - made `returnVals` and the `jsonState` slice global variables
     - slice of golang is dynamic, don't need to worry about memory bound
+- chap5 chall5 talks about RESTful APIs.
+    - RESTful APIs defines conventional http methods API should take for endpoints
+    - path of endpoints in RESTful APIS exhausts to the end of the URL (http path)
+
+- Cookies are sent from the server to the client in the `Set-Cookie` header, browsers automatically send any cookies they have back to the server in the Cookie header.
+  - cookies are mostly for websites
