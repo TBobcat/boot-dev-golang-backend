@@ -19,3 +19,5 @@
 
 # Go workspace file
 go.work
+web_server/database.json
+web_server/file_path.json

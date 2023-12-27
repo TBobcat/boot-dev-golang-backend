@@ -78,3 +78,7 @@ used chatgpt for code to rendered a html page as a string, and made sure url pat
 
 - Cookies are sent from the server to the client in the `Set-Cookie` header, browsers automatically send any cookies they have back to the server in the Cookie header.
   - cookies are mostly for websites
+
+### *Dec.27th* 
+- after splitting files, use `go run .` to run the whole server
+
